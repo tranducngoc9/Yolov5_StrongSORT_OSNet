@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Create a VideoCapture object and read from input file
-cap = cv2.VideoCapture('/home/ngoc/Documents/Bee/Yolov5_StrongSORT_OSNet/video_test/origin_video.mp4')
+cap = cv2.VideoCapture('./video_test/origin_video.mp4')
 
 # Check if camera opened successfully
 if (cap.isOpened()== False):
@@ -51,6 +51,7 @@ for i in f:
     i = i.split(" ")
     data.append(i)
 
+result = cv2.VideoWriter('filename.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (640,640))
 
 
 i = 0
@@ -68,19 +69,23 @@ while(cap.isOpened()):
         
         # Display the resulting frame
         frame = cv2.resize(frame, (640, 640)) 
+        result.write(frame)
         cv2.imshow('Frame', frame)
         
         # Press Q on keyboard to exit
+        # cv2.waitKey(0)
+
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
-    # Break the loop
+    # Break the loopqq
     else:
         break
 
 # When everything done, release
 # the video capture object
 cap.release()
+result.release()
 
 # Closes all the frames
 cv2.destroyAllWindows()
