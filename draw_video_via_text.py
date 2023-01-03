@@ -61,6 +61,7 @@ while(cap.isOpened()):
     ret, frame = cap.read()
     if ret == True:
         i +=1
+        print(i)
         for boxes in data:
             if boxes[0] == str(i):
                 # Draw box
