@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Create a VideoCapture object and read from input file
-cap = cv2.VideoCapture('./video_test/origin_video.mp4')
+cap = cv2.VideoCapture('/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/video_test/2022-10-05-09-30_cut.mp4')
 
 # Check if camera opened successfully
 if (cap.isOpened()== False):
@@ -43,7 +43,7 @@ def draw_boxes(img, bbox, identities=None, offset=(0, 0)):
 #956
 # read text
 data = []
-with open ("origin_video.txt", "r") as f:
+with open ("runs/track/exp/tracks/2022-10-05-09-30_cut.txt", "r") as f:
     f = f.read()
     f = f.split("\n")
 
@@ -56,7 +56,7 @@ result = cv2.VideoWriter('filename.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (6
 
 i = 0
 while(cap.isOpened()):
-
+    cap.set(cv2.CAP_PROP_FPS,10)
     # Capture frame-by-frame
     ret, frame = cap.read()
     if ret == True:
