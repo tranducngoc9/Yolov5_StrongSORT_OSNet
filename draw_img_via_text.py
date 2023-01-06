@@ -47,7 +47,7 @@ for i in f:
     data.append(i)
 
 
-i = 0
+i = 790
 while(True):
 
     # Capture frame-by-frame
@@ -58,9 +58,9 @@ while(True):
     for boxes in data:
         if boxes[0] == str(i):
             print(boxes)
-            # Draw box
+            # Draw boxq
             frame = draw_boxes(frame, bbox= [boxes[2:6]], identities= boxes[1])
-            cv2.waitKey(0)
+    cv2.waitKey(0)
 
     # Display the resulting frame
     frame = cv2.resize(frame, (640, 640)) 
