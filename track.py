@@ -38,20 +38,19 @@ from yolov5.utils.plots import Annotator, colors, save_one_box
 
 from trackers.ocsort.ocsort import OCSort
 
+#debug log
+from inspect import currentframe, getframeinfo
+import datetime
 
-def create_tracker(tracker_type, appearance_descriptor_weights, device, half):
+debug_log = True
 
-    if tracker_type == 'ocsort':
-        ocsort = OCSort(
-            det_thresh=0.45,
-            iou_threshold=0.2,
-            use_byte=False 
-        )
-        return ocsort
-    else:
-        print('No such tracker')
-        exit()
+def Debug_log(cf, filename, name = ''):
+    if debug_log:
+        ct = datetime.datetime.now()
+        print(f'================  file {filename} , line : {cf.f_lineno} {name}')
 
+# Debug_log(currentframe(), getframeinfo(currentframe()).filename)
+        
 # remove duplicated stream handler to avoid duplicated logging
 #logging.getLogger().removeHandler(logging.getLogger().handlers[0])
 palette = (2 ** 11 - 1, 2 ** 15 - 1, 2 ** 20 - 1)
@@ -65,10 +64,8 @@ def compute_color_for_labels(label):
 @torch.no_grad()
 
 def run(
-        source='/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/video_test/2022-10-05-09-30_cut.mp4',
-        yolo_weights=WEIGHTS / '/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/weights/best27.pt',  # model.pt path(s),
-        reid_weights=WEIGHTS / 'osnet_x0_25_msmt17.pt',  # model.pt path,
-        tracking_method='ocsort',
+        source='/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/video_test/a.mp4',
+        yolo_weights=WEIGHTS / '/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/yolov5s.pt',  # model.pt path(s),
         imgsz=(640, 640),  # inference size (height, width)
         conf_thres=0.25,  # confidence threshold
         iou_thres=0.45,  # NMS IOU threshold
@@ -105,23 +102,31 @@ def run(
     webcam = source.isnumeric() or source.endswith('.txt') or (is_url and not is_file)
     if is_url and is_file:
         source = check_file(source)  # download
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
 
     # Directories
     if not isinstance(yolo_weights, list):  # single yolo model
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         exp_name = yolo_weights.stem
     elif type(yolo_weights) is list and len(yolo_weights) == 1:  # single models after --yolo_weights
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         exp_name = Path(yolo_weights[0]).stem
     else:  # multiple models after --yolo_weights
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         exp_name = 'ensemble'
-    exp_name = name if name else exp_name + "_" + reid_weights.stem
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
+        
+    # exp_name = name if name else exp_name + "_" + reid_weights.stem
     save_dir = increment_path(Path(project) / exp_name, exist_ok=exist_ok)  # increment run
     (save_dir / 'tracks' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
 
     # Load model
     device = select_device(device)
     model = DetectMultiBackend(yolo_weights, device=device, dnn=dnn, data=None, fp16=half)
     stride, names, pt = model.stride, model.names, model.pt
     imgsz = check_img_size(imgsz, s=stride)  # check image size
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
 
     # Dataloader
     if webcam:
@@ -136,11 +141,9 @@ def run(
     # Create as many strong sort instances as there are video sources
     tracker_list = []
     for i in range(nr_sources):
-        tracker = create_tracker(tracking_method, reid_weights, device, half)
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
+        tracker =    OCSort(det_thresh=0.45, iou_threshold=0.2, use_byte=False )
         tracker_list.append(tracker, )
-        if hasattr(tracker_list[i], 'model'):
-            if hasattr(tracker_list[i].model, 'warmup'):
-                tracker_list[i].model.warmup()
     outputs = [None] * nr_sources
 
     # Run tracking
@@ -148,6 +151,7 @@ def run(
     dt, seen = [0.0, 0.0, 0.0, 0.0], 0
     curr_frames, prev_frames = [None] * nr_sources, [None] * nr_sources
     for frame_idx, (path, im, im0s, vid_cap, s) in enumerate(dataset):
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         t1 = time_sync()
         im = torch.from_numpy(im).to(device)
         im = im.half() if half else im.float()  # uint8 to fp16/32
@@ -169,6 +173,7 @@ def run(
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
+            Debug_log(currentframe(), getframeinfo(currentframe()).filename)
             seen += 1
             if webcam:  # nr_sources >= 1
                 p, im0, _ = path[i], im0s[i].copy(), dataset.count
@@ -195,11 +200,8 @@ def run(
 
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             
-            if hasattr(tracker_list[i], 'tracker') and hasattr(tracker_list[i].tracker, 'camera_update'):
-                if prev_frames[i] is not None and curr_frames[i] is not None:  # camera motion compensation
-                    tracker_list[i].tracker.camera_update(prev_frames[i], curr_frames[i])
-
             if det is not None and len(det):
+                Debug_log(currentframe(), getframeinfo(currentframe()).filename)
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # xyxy
 
@@ -224,6 +226,7 @@ def run(
                         conf = output[6]
 
                         if save_txt:
+                            Debug_log(currentframe(), getframeinfo(currentframe()).filename)
                             # to MOT format
                             bbox_left = output[0]
                             bbox_top = output[1]
@@ -235,6 +238,7 @@ def run(
                                                                bbox_top, bbox_w, bbox_h, -1, -1, -1, i))
 
                         if save_vid or save_crop or show_vid:  # Add bbox to image
+                            Debug_log(currentframe(), getframeinfo(currentframe()).filename)
                             c = int(cls)  # integer class
                             id = int(id)  # integer id
                             label = None if hide_labels else (f'{id} {names[c]}' if hide_conf else \
@@ -243,14 +247,12 @@ def run(
                             color = compute_color_for_labels(id)
                             annotator.box_label(bboxes, label, color=color)
 
-                            if save_trajectories and tracking_method == 'strongsort':
-                                q = output[7]
-                                tracker_list[i].trajectory(im0, q, color=color)
                             if save_crop:
+                                Debug_log(currentframe(), getframeinfo(currentframe()).filename)
                                 txt_file_name = txt_file_name if (isinstance(path, list) and len(path) > 1) else ''
                                 save_one_box(bboxes, imc, file=save_dir / 'crops' / txt_file_name / names[c] / f'{id}' / f'{p.stem}.jpg', BGR=True)
 
-                LOGGER.info(f'{s}Done. yolo:({t3 - t2:.3f}s), {tracking_method}:({t5 - t4:.3f}s)')
+                LOGGER.info(f'{s}Done. yolo:({t3 - t2:.3f}s), OcSORT:({t5 - t4:.3f}s)')
                 
             else:
                 LOGGER.info('No detections')
@@ -286,16 +288,12 @@ def run(
     if save_txt or save_vid:
         s = f"\n{len(list(save_dir.glob('tracks/*.txt')))} tracks saved to {save_dir / 'tracks'}" if save_txt else ''
         LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
-    if update:
-        strip_optimizer(yolo_weights)  # update model (to fix SourceChangeWarning)
 
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--yolo-weights', nargs='+', type=Path, default=WEIGHTS / '/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/weights/best27.pt', help='model.pt path(s)')
-    parser.add_argument('--reid-weights', type=Path, default=WEIGHTS / 'osnet_x0_25_msmt17.pt')
-    parser.add_argument('--tracking-method', type=str, default='ocsort', help='strongsort, ocsort, bytetrack')
-    parser.add_argument('--source', type=str, default='/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/video_test/2022-10-05-09-30_cut.mp4', help='file/dir/URL/glob, 0 for webcam')  
+    parser.add_argument('--yolo-weights', nargs='+', type=Path, default=WEIGHTS / '/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/yolov5s.pt', help='model.pt path(s)')
+    parser.add_argument('--source', type=str, default='/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/video_test/a.mp4', help='file/dir/URL/glob, 0 for webcam')  
     parser.add_argument('--imgsz', '--img', '--img-size', nargs='+', type=int, default=[640], help='inference size h,w')
     parser.add_argument('--conf-thres', type=float, default=0.5, help='confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
@@ -332,9 +330,13 @@ def parse_opt():
 
 def main(opt):
     check_requirements(requirements=ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     run(**vars(opt))
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
 
 
 if __name__ == "__main__":
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     opt = parse_opt()
     main(opt)
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)

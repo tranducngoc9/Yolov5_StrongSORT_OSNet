@@ -7,8 +7,22 @@ import numpy as np
 from .association import *
 from yolov5.utils.general import xywh2xyxy
 
+#debug log
+from inspect import currentframe, getframeinfo
+import datetime
+
+debug_log = True
+
+def Debug_log(cf, filename, name = ''):
+    if debug_log:
+        ct = datetime.datetime.now()
+        print(f'================  file {filename} , line : {cf.f_lineno} {name}')
+
+# Debug_log(currentframe(), getframeinfo(currentframe()).filename)
+
 
 def k_previous_obs(observations, cur_age, k):
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     if len(observations) == 0:
         return [-1, -1, -1, -1, -1]
     for i in range(k):
@@ -20,6 +34,7 @@ def k_previous_obs(observations, cur_age, k):
 
 
 def convert_bbox_to_z(bbox):
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     """
     Takes a bounding box in the form [x1,y1,x2,y2] and returns z in the form
       [x,y,s,r] where x,y is the centre of the box and s is the scale/area and r is
@@ -35,6 +50,7 @@ def convert_bbox_to_z(bbox):
 
 
 def convert_x_to_bbox(x, score=None):
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     """
     Takes a bounding box in the centre form [x,y,s,r] and returns it in the form
       [x1,y1,x2,y2] where x1,y1 is the top left and x2,y2 is the bottom right
@@ -48,6 +64,7 @@ def convert_x_to_bbox(x, score=None):
 
 
 def speed_direction(bbox1, bbox2):
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     cx1, cy1 = (bbox1[0]+bbox1[2]) / 2.0, (bbox1[1]+bbox1[3])/2.0
     cx2, cy2 = (bbox2[0]+bbox2[2]) / 2.0, (bbox2[1]+bbox2[3])/2.0
     speed = np.array([cy2-cy1, cx2-cx1])
@@ -56,10 +73,12 @@ def speed_direction(bbox1, bbox2):
 
 
 class KalmanBoxTracker(object):
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     """
     This class represents the internal state of individual tracked objects observed as bbox.
     """
     count = 0
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
 
     def __init__(self, bbox, cls, delta_t=3, orig=False):
         """
@@ -106,6 +125,7 @@ class KalmanBoxTracker(object):
         self.delta_t = delta_t
 
     def update(self, bbox, cls):
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         """
         Updates the state vector with observed bbox.
         """
@@ -144,6 +164,7 @@ class KalmanBoxTracker(object):
             self.kf.update(bbox)
 
     def predict(self):
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         """
         Advances the state vector and returns the predicted bounding box estimate.
         """
@@ -159,6 +180,7 @@ class KalmanBoxTracker(object):
         return self.history[-1]
 
     def get_state(self):
+        Debug_log(currentframe(), getframeinfo(currentframe()).filename)
         """
         Returns the current bounding box estimate.
         """
@@ -171,14 +193,11 @@ class KalmanBoxTracker(object):
     that we hardly normalize the cost by all methods to (0,1) which may not be 
     the best practice.
 """
-ASSO_FUNCS = {  "iou": iou_batch,
-                "giou": giou_batch,
-                "ciou": ciou_batch,
-                "diou": diou_batch,
-                "ct_dist": ct_dist}
+ASSO_FUNCS = {  "iou": iou_batch}
 
 
 class OCSort(object):
+    Debug_log(currentframe(), getframeinfo(currentframe()).filename)
     def __init__(self, det_thresh, max_age=30, min_hits=3, 
         iou_threshold=0.3, delta_t=3, asso_func="iou", inertia=0.2, use_byte=False):
         """
