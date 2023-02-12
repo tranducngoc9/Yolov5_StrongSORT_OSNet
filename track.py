@@ -42,7 +42,7 @@ from trackers.ocsort.ocsort import OCSort
 from inspect import currentframe, getframeinfo
 import datetime
 
-debug_log = True
+debug_log = False
 
 def Debug_log(cf, filename, name = ''):
     if debug_log:
@@ -64,7 +64,7 @@ def compute_color_for_labels(label):
 @torch.no_grad()
 
 def run(
-        source='/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/video_test/a.mp4',
+        source='/video_test/a.mp4',
         yolo_weights=WEIGHTS / '/home/ngoc/Documents/Yolov5_StrongSORT_OSNet/yolov5s.pt',  # model.pt path(s),
         imgsz=(640, 640),  # inference size (height, width)
         conf_thres=0.25,  # confidence threshold
@@ -148,6 +148,13 @@ def run(
 
     # Run tracking
     #model.warmup(imgsz=(1 if pt else nr_sources, 3, *imgsz))  # warmup
+
+    trajectory  = []
+    current_centroidarr_x = 0
+    current_centroidarr_y = 0
+    previous_centroidarr_x = 0
+    previous_centroidarr_y = 0
+
     dt, seen = [0.0, 0.0, 0.0, 0.0], 0
     curr_frames, prev_frames = [None] * nr_sources, [None] * nr_sources
     for frame_idx, (path, im, im0s, vid_cap, s) in enumerate(dataset):
@@ -213,9 +220,10 @@ def run(
                 # pass detections to strongsort
                 t4 = time_sync()
                 outputs[i] = tracker_list[i].update(det.cpu(), im0)
+                
                 t5 = time_sync()
                 dt[3] += t5 - t4
-                
+
                 # draw boxes for visualization
                 if len(outputs[i]) > 0:
                     for j, (output) in enumerate(outputs[i]):
@@ -236,6 +244,7 @@ def run(
                             with open(txt_path + '.txt', 'a') as f:
                                 f.write(('%g ' * 10 + '\n') % (frame_idx + 1, id, bbox_left,  # MOT format
                                                                bbox_top, bbox_w, bbox_h, -1, -1, -1, i))
+                           
 
                         if save_vid or save_crop or show_vid:  # Add bbox to image
                             Debug_log(currentframe(), getframeinfo(currentframe()).filename)
@@ -260,6 +269,49 @@ def run(
                 
             # Stream results
             im0 = annotator.result()
+            print(outputs[0])
+            # trajectory.append(outputs)
+            # print(trajectory)
+            # print(trajectory)
+
+            # if len(trajectory) >1:
+            #     # Từng lịch sử frame 1
+            #     for i_tjtr in range(len(trajectory)):
+
+            #         # print("\n############################################\n")
+            #         # print(trajectory[i_tjtr][0])
+            #         for id_bee in range(len(trajectory[i_tjtr][0])):
+
+            #             if (trajectory[i_tjtr][0][id_bee][4] == trajectory[i_tjtr-1][0][id_bee][4]):
+
+            #                 current_centroidarr_x = int(trajectory[i_tjtr][0][id_bee][0])
+            #                 # print(current_centroidarr_x, current_centroidarr_y)
+            #                 current_centroidarr_y = int(trajectory[i_tjtr][0][id_bee][1])
+
+            #                 previous_centroidarr_x = int(trajectory[i_tjtr-1][0][id_bee][0])
+            #                 previous_centroidarr_y = int(trajectory[i_tjtr-1][0][id_bee][1])
+            #                 # print(previous_centroidarr_x, previous_centroidarr_y)
+            #                 cv2.line(im0, (current_centroidarr_x,current_centroidarr_y),
+            #                                 (previous_centroidarr_x,previous_centroidarr_y),
+            #                                 (0, 255, 0), thickness=9)
+
+                                            # cv2.line(im0, (int(track[i][0]),
+                        #             int(track[i][1])), 
+                        #             (int(track[i+1][0]),
+                        #             int(track[i+1][1])),
+                        #             (0, 255, 0), thickness=5)
+
+
+            # for track in trajectory:
+            #     for i,_ in  enumerate(track): 
+            #         if 1:#i < len(track)-1:
+                        
+            #             print(track[0][0]) 
+            #             # cv2.line(im0, (int(track[i][0]),
+            #             #             int(track[i][1])), 
+            #             #             (int(track[i+1][0]),
+            #             #             int(track[i+1][1])),
+            #             #             (0, 255, 0), thickness=5)
             if show_vid:
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond

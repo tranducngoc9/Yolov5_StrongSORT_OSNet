@@ -11,7 +11,7 @@ from yolov5.utils.general import xywh2xyxy
 from inspect import currentframe, getframeinfo
 import datetime
 
-debug_log = True
+debug_log = False
 
 def Debug_log(cf, filename, name = ''):
     if debug_log:
