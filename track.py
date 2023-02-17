@@ -269,49 +269,39 @@ def run(
                 
             # Stream results
             im0 = annotator.result()
-            print(outputs[0])
-            # trajectory.append(outputs)
+            # print(outputs[0])
+            trajectory.append(outputs[0])
             # print(trajectory)
             # print(trajectory)
-
-            # if len(trajectory) >1:
-            #     # Từng lịch sử frame 1
-            #     for i_tjtr in range(len(trajectory)):
-
-            #         # print("\n############################################\n")
-            #         # print(trajectory[i_tjtr][0])
-            #         for id_bee in range(len(trajectory[i_tjtr][0])):
-
-            #             if (trajectory[i_tjtr][0][id_bee][4] == trajectory[i_tjtr-1][0][id_bee][4]):
-
-            #                 current_centroidarr_x = int(trajectory[i_tjtr][0][id_bee][0])
-            #                 # print(current_centroidarr_x, current_centroidarr_y)
-            #                 current_centroidarr_y = int(trajectory[i_tjtr][0][id_bee][1])
-
-            #                 previous_centroidarr_x = int(trajectory[i_tjtr-1][0][id_bee][0])
-            #                 previous_centroidarr_y = int(trajectory[i_tjtr-1][0][id_bee][1])
-            #                 # print(previous_centroidarr_x, previous_centroidarr_y)
-            #                 cv2.line(im0, (current_centroidarr_x,current_centroidarr_y),
-            #                                 (previous_centroidarr_x,previous_centroidarr_y),
-            #                                 (0, 255, 0), thickness=9)
-
-                                            # cv2.line(im0, (int(track[i][0]),
-                        #             int(track[i][1])), 
-                        #             (int(track[i+1][0]),
-                        #             int(track[i+1][1])),
-                        #             (0, 255, 0), thickness=5)
-
-
-            # for track in trajectory:
-            #     for i,_ in  enumerate(track): 
-            #         if 1:#i < len(track)-1:
+            
+            if len(trajectory) >1:
+                # Từng lịch sử frame 1
+                for i_tjtr in range(len(trajectory)-1,0,-1):
+                    # if i_tjtr == 0:
+                    #     continue 
+                    print("############################################")
+                    #so sánh khung trước với khung sau
+                    for tra_crr in trajectory[i_tjtr]:
+                        for tra_pre in trajectory[i_tjtr-1]:
                         
-            #             print(track[0][0]) 
-            #             # cv2.line(im0, (int(track[i][0]),
-            #             #             int(track[i][1])), 
-            #             #             (int(track[i+1][0]),
-            #             #             int(track[i+1][1])),
-            #             #             (0, 255, 0), thickness=5)
+                            if tra_pre[4] == tra_crr[4]:
+                                # print(tra_pre[4])
+                                current_centroidarr_x = int((tra_crr[0] + tra_crr[2])/2)
+                                current_centroidarr_y = int((tra_crr[1] + tra_crr[3])/2)
+                                print(current_centroidarr_x, current_centroidarr_y)
+
+                                previous_centroidarr_x = int((tra_pre[0] + tra_pre[2])/2)
+                                previous_centroidarr_y = int((tra_pre[1] + tra_pre[3])/2)
+                                print(previous_centroidarr_x, previous_centroidarr_y)
+
+
+                                color = compute_color_for_labels(int(tra_pre[4]))
+
+                                cv2.line(im0, (current_centroidarr_x,current_centroidarr_y),
+                                         (previous_centroidarr_x,previous_centroidarr_y),
+                                            color, thickness=3)
+
+
             if show_vid:
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond

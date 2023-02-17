@@ -1,6 +1,8 @@
-import numpy as np
-import cv2
+a  = 2
 
-a = [1,2,3]
-a.append(2)
-print(a)
+b = [1,2,3,4,5,6,7]
+
+c= [a for a in b]
+
+for i in range(len(b), 1, -1):
+    print(i)
