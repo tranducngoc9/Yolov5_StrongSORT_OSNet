@@ -275,11 +275,13 @@ def run(
             # print(trajectory)
             
             if len(trajectory) >1:
+                if len(trajectory)>40:
+                    trajectory = trajectory[-40:]
                 # Từng lịch sử frame 1
                 for i_tjtr in range(len(trajectory)-1,0,-1):
                     # if i_tjtr == 0:
                     #     continue 
-                    print("############################################")
+                    # print("############################################")
                     #so sánh khung trước với khung sau
                     for tra_crr in trajectory[i_tjtr]:
                         for tra_pre in trajectory[i_tjtr-1]:
@@ -288,11 +290,11 @@ def run(
                                 # print(tra_pre[4])
                                 current_centroidarr_x = int((tra_crr[0] + tra_crr[2])/2)
                                 current_centroidarr_y = int((tra_crr[1] + tra_crr[3])/2)
-                                print(current_centroidarr_x, current_centroidarr_y)
+                                # print(current_centroidarr_x, current_centroidarr_y)
 
                                 previous_centroidarr_x = int((tra_pre[0] + tra_pre[2])/2)
                                 previous_centroidarr_y = int((tra_pre[1] + tra_pre[3])/2)
-                                print(previous_centroidarr_x, previous_centroidarr_y)
+                                # print(previous_centroidarr_x, previous_centroidarr_y)
 
 
                                 color = compute_color_for_labels(int(tra_pre[4]))

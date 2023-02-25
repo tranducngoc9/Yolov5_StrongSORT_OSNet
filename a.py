@@ -1,8 +1,9 @@
-a  = 2
+import numpy as np
+filter_du = np.array([
+        [1.0, 2.0, 1.0],
+        [0.0, 0.0, 0.0],
+        [-1.0, -2.0, -1.0],
+    ])
+filter_du = np.stack([filter_du] * 3, axis=2)
 
-b = [1,2,3,4,5,6,7]
-
-c= [a for a in b]
-
-for i in range(len(b), 1, -1):
-    print(i)
+print(filter_du)

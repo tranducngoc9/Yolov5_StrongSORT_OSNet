@@ -43,7 +43,7 @@ def draw_boxes(img, bbox, identities=None, offset=(0, 0)):
 #956
 # read text
 data = []
-with open ("2022-10-05-09-30_cut.txt", "r") as f:
+with open ("origin_video.txt", "r") as f:
     f = f.read()
     f = f.split("\n")
 
@@ -51,8 +51,16 @@ for i in f:
     i = i.split(" ")
     data.append(i)
 
-result = cv2.VideoWriter('filename.avi', cv2.VideoWriter_fourcc(*'MJPG'), 10, (640,640))
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+output_video = cv2.VideoWriter('output_video.mp4', fourcc, 30.0, (1036, 700))
 
+
+#Dữ liệu để theo dõi quỹ đạo
+trajectory  = []
+current_centroidarr_x = 0
+current_centroidarr_y = 0
+previous_centroidarr_x = 0
+previous_centroidarr_y = 0
 
 i = 0
 while(cap.isOpened()):
@@ -63,14 +71,51 @@ while(cap.isOpened()):
         i +=1
         print(i)
         for boxes in data:
+            #Kiểm tra nếu Frame thứ i trong file txt trùng với Frame thứ i trong video đang đọc
             if boxes[0] == str(i):
                 # Draw box
                 frame = draw_boxes(frame, bbox= [boxes[2:6]], identities= boxes[1])
-    
+
+                #Vẽ quỹ đạo cho video
+                trajectory.append(boxes)
+                # print(trajectory)
+                # print(trajectory)
+                
+                if len(trajectory) >1:
+                    if len(trajectory)>40:
+                        trajectory = trajectory[-40:]
+                    # Từng lịch sử frame 1
+                    for i_tjtr in range(len(trajectory)-1,0,-1):
+                        # if i_tjtr == 0:
+                        #     continue 
+                        print(trajectory[i_tjtr])
+                        print("############################################")
+                        #so sánh khung trước với khung sau
+                        # for tra_crr in trajectory[i_tjtr]:
+                        #     for tra_pre in trajectory[i_tjtr-1]:
+                                # print(tra_pre, tra_crr)
+                                # if tra_pre[1] == tra_crr[1]:
+                                #     # print(tra_pre[4])
+                                #     current_centroidarr_x = int(tra_crr[0] + tra_crr[2]/2)
+                                #     current_centroidarr_y = int(tra_crr[1] + tra_crr[3]/2)
+                                #     # print(current_centroidarr_x, current_centroidarr_y)
+
+                                #     previous_centroidarr_x = int(tra_pre[0] + tra_pre[2]/2)
+                                #     previous_centroidarr_y = int(tra_pre[1] + tra_pre[3]/2)
+                                #     # print(previous_centroidarr_x, previous_centroidarr_y)
+
+
+                                #     color = compute_color_for_labels(int(tra_pre[1]))
+
+                                #     cv2.line(frame, (current_centroidarr_x,current_centroidarr_y),
+                                #                 (previous_centroidarr_x,previous_centroidarr_y),
+                                #                 color, thickness=3)   
         
-        # Display the resulting frame
+        # Đặt lại kích cỡ video
         frame = cv2.resize(frame, (1036, 700)) 
-        result.write(frame)
+
+        #Lưu và show video
+        output_video.write(frame)
         cv2.imshow('Frame', frame)
         
         # Press Q on keyboard to exit
@@ -86,7 +131,7 @@ while(cap.isOpened()):
 # When everything done, release
 # the video capture object
 cap.release()
-result.release()
+output_video.release()
 
 # Closes all the frames
 cv2.destroyAllWindows()

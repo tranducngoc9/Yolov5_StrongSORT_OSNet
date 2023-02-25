@@ -1,7 +1,6 @@
 # importing libraries
 import cv2
 import numpy as np
-import keyboard
 
 
 # Read until video is completed
